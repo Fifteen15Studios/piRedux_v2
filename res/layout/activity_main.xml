@@ -22,7 +22,7 @@
         android:textSize="24dp"
         android:text="Set Resize" />
     <Button
-        android:id="@+id/resizephotos"
+        android:id="@+id/resizePhotos"
         android:layout_width="match_parent"
         android:layout_height="125dp"
         android:textColor="#F2F2F2"
