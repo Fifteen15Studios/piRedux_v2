@@ -8,7 +8,6 @@ import android.provider.MediaStore.Images;
 //Import Android Application features
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 
 //Import Android content features
 import android.content.ContentResolver;
@@ -53,18 +52,18 @@ import java.util.ArrayList;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 
 //Import Android Widget Features
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity
 {
     //-----constants-----
 
     protected static final String SETTINGS = "appSettings";
+    protected static final String SETTING_WIDTH = "imageWidth";
+    protected static final String SETTING_HEIGHT = "imageHeight";
 
     //Final int RADIO_BUTTON Selector
     protected static final int RADIO_BUTTON_1 = 1;
@@ -159,6 +158,20 @@ public class MainActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+
+        SharedPreferences settings = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+
+        //set default settings if no settings are found
+        if(settings.getInt(SETTING_HEIGHT, -1) == -1) {
+            editor.putInt(SETTING_HEIGHT, RADIO_BUTTON_3_HEIGHT);
+            editor.apply();
+        }
+        if(settings.getInt(SETTING_WIDTH, -1) == -1) {
+            editor.putInt(SETTING_WIDTH, RADIO_BUTTON_3_WIDTH);
+            editor.apply();
+        }
+
         //create Bundle package (required before anything else)
         super.onCreate(savedInstanceState);
         //display Content View (required before anything else)
@@ -172,13 +185,13 @@ public class MainActivity extends Activity
         //Functions that initialize the app
 
         //Function that initializes add button
-        initializebtnAddFile();
+        initializeBtnAddFile();
         //Function that initializes the display TextView
         initializeTextView();
         //Function that initializes resize settings button
-        initializebtnResizeSettings();
+        initializeBtnResizeSettings();
         //Function that initializes resize photos button
-        initializebtnResizePhotos();
+        initializeBtnResizePhotos();
         //Function that initializes visibility for all objects
         initialVisibility();
 
@@ -186,11 +199,7 @@ public class MainActivity extends Activity
         //if ACTION_SEND_MULTIPLE is selected from the menu
         if(Intent.ACTION_SEND_MULTIPLE.equals(action))
         {
-            if (extras == null)
-            {
-                return;
-            }
-            else if(extras.containsKey(Intent.EXTRA_STREAM))
+            if(extras != null && extras.containsKey(Intent.EXTRA_STREAM))
             {
                 ArrayList<Parcelable> list = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 for(Parcelable p : list)
@@ -200,14 +209,13 @@ public class MainActivity extends Activity
                     long fileSize = 0;
                     String fileSizeString = getImageSize(imageUri);
                     long fileSizeLong = Long.parseLong(fileSizeString);
-                    int fileSizeInt = Integer.parseInt(fileSizeString);
-                    fileSize = fileSizeInt;
+                    fileSize = Integer.parseInt(fileSizeString);
 
-                    double fileSizeInByte = fileSizeLong;
+                    double fileSizeInByte = Double.parseDouble(fileSizeString);
                     double fileSizeInKB = fileSizeLong / 1024;
                     double fileSizeInMB = fileSizeInKB / 1024;
-                    double fileSizeInMBPercision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
-                    fileSizeString = Double.toString(fileSizeInMBPercision);
+                    double fileSizeInMBPrecision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
+                    fileSizeString = Double.toString(fileSizeInMBPrecision);
                     if(fileSize == 0)
                     {
                         sizeArrayList.add("N/A");
@@ -222,21 +230,16 @@ public class MainActivity extends Activity
                         sizeArrayInKB.add(fileSizeInKB);
                         sizeArrayInMB.add(fileSizeInMB);
                     }
-                    totalSizeInMB += fileSizeInMBPercision;
+                    totalSizeInMB += fileSizeInMBPrecision;
                 }
                 numOfPicsSelected = arrayUri.size();
                 updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
-                return;
             }
         }
         // if this is from the share menu
         else if (Intent.ACTION_SEND.equals(action))
         {
-            if (extras == null)
-            {
-                return;
-            }
-            else if (extras.containsKey(Intent.EXTRA_STREAM))
+            if (extras != null && extras.containsKey(Intent.EXTRA_STREAM))
             {
                 try
                 {
@@ -246,14 +249,13 @@ public class MainActivity extends Activity
                     long fileSize = 0;
                     String fileSizeString = getImageSize(imageUri);
                     long fileSizeLong = Long.parseLong(fileSizeString);
-                    int fileSizeInt = Integer.parseInt(fileSizeString);
-                    fileSize = fileSizeInt;
+                    fileSize = Integer.parseInt(fileSizeString);
 
-                    double fileSizeInByte = fileSizeLong;
+                    double fileSizeInByte = Double.parseDouble(fileSizeString);
                     double fileSizeInKB = fileSizeLong / 1024;
                     double fileSizeInMB = fileSizeInKB / 1024;
-                    double fileSizeInMBPercision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
-                    fileSizeString = Double.toString(fileSizeInMBPercision);
+                    double fileSizeInMBPrecision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
+                    fileSizeString = Double.toString(fileSizeInMBPrecision);
                     if(fileSize == 0)
                     {
                         sizeArrayList.add("N/A");
@@ -268,20 +270,21 @@ public class MainActivity extends Activity
                         sizeArrayInKB.add(fileSizeInKB);
                         sizeArrayInMB.add(fileSizeInMB);
                     }
-                    totalSizeInMB += fileSizeInMBPercision;
+                    totalSizeInMB += fileSizeInMBPrecision;
                     //numOfPicsSelected = arrayUri.size();
                     //updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
-                    return;
                 }
                 catch (Exception e)
                 {
                     Log.e(this.getClass().getName(), e.toString());
                 }
 
-            } else if (extras.containsKey(Intent.EXTRA_TEXT))
+            }
+            //reserving for later use?
+            /*else if (extras.containsKey(Intent.EXTRA_TEXT))
             {
                 return;
-            }
+            }*/
         }
         else
         {
@@ -333,6 +336,7 @@ public class MainActivity extends Activity
         }
     };
 
+    //todo: change this to work properly
     public void updateSettingsChoice(
             String _selectedRadioButton,
             String _selectedRadioButtonString,
@@ -446,8 +450,8 @@ public class MainActivity extends Activity
         switch(selectedRadioButton)
         {
             case 1:
-                setDesiredWidth = RADIO_BUTTON_1_HEIGHT;
-                setDesiredHeight = RADIO_BUTTON_1_WIDTH;
+                setDesiredWidth = RADIO_BUTTON_1_WIDTH;
+                setDesiredHeight = RADIO_BUTTON_1_HEIGHT;
                 break;
             case 2:
                 setDesiredWidth = RADIO_BUTTON_2_WIDTH;
@@ -474,6 +478,7 @@ public class MainActivity extends Activity
         identification_ender = arrayUri.size();
     }
 
+    //why is passed image never used?
     public void saveImageCreated(Bitmap _tempBitmap)
     {
         String fileNameString = getFileNameFromURI(arrayUri.get(identification_counter)) + sizeArrayMimeType.get(identification_counter);
@@ -658,10 +663,9 @@ public class MainActivity extends Activity
         }
         String filePath = file.getAbsolutePath() + "/" + fileName;
         File checkIfExist = new File(filePath);
-        if(checkIfExist.exists() == true)
+        if(checkIfExist.exists())
         {
-            String newFilePath = file.getAbsolutePath() + "/" + duplicateImage + "_" + fileName;
-            filePath = newFilePath;
+            filePath = file.getAbsolutePath() + "/" + duplicateImage + "_" + fileName;
             duplicateImage++;
         }
         FileOutputStream out = new FileOutputStream(filePath);
@@ -704,7 +708,7 @@ public class MainActivity extends Activity
     public String getFileNameFromURI(Uri uriImg)
     {
         File file = new File(uriImg.toString());
-        String uriString = file.getAbsolutePath().toString();
+        String uriString = file.getAbsolutePath();
 
         int fileNameInt = uriString.lastIndexOf("/");
         if(uriString.contains("/"))
@@ -715,8 +719,8 @@ public class MainActivity extends Activity
         {
             fileNameInt = uriString.lastIndexOf("\\");
         }
-        String fileName = uriString.substring(fileNameInt + 1, uriString.length()) + "_resized";
-        return fileName;
+        
+        return uriString.substring(fileNameInt + 1, uriString.length()) + "_resized";
     }
 
     //Function to clear the Garbage Collector for possible memory issues (OutOfMemoryException)
@@ -727,7 +731,8 @@ public class MainActivity extends Activity
 
     public int convertExif2Degress(int degreesConvert)
     {
-        int returnValue = 0;
+        int returnValue;
+
         if(degreesConvert == 90)
         {
             returnValue = 90;
@@ -750,7 +755,7 @@ public class MainActivity extends Activity
 
     public int getOrientation(Context context, Uri photoUri)
     {
-        int rotateIntValue = 0;
+        int rotateIntValue;
         Cursor cursor = context.getContentResolver().query(photoUri, new String[] {MediaStore.Images.ImageColumns.ORIENTATION}, null, null, null);
         if(cursor.getCount() != 1)
         {
@@ -791,11 +796,8 @@ public class MainActivity extends Activity
             String action = data.getAction();
 
             super.onActivityResult(requestCode, resultCode, data);
-            if (requestCode == 0) {
-
-            } else {
-                int setSelectedRadioButton = data.getExtras().getInt("selectedRadioButton");
-                requestCode = setSelectedRadioButton;
+            if (requestCode != 0) {
+                requestCode = data.getExtras().getInt("selectedRadioButton");
             }
 
             switch (requestCode) {
@@ -807,11 +809,8 @@ public class MainActivity extends Activity
                         selectedRadioButton = getSelectedRadioButton1;
                         selectedRadioButtonString = getSelectedRadioButtonString1;
                         aspectRatioSelected = data.getExtras().getString("aspectRatioSelected");
-                        int compressedQualityValue = data.getExtras().getInt("qualityCompressValue");
-                        qualityCompressValue = compressedQualityValue;
+                        qualityCompressValue = data.getExtras().getInt("qualityCompressValue");
                         setSelectedRadioButtons();
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
                 case RADIO_BUTTON_2:
@@ -821,11 +820,8 @@ public class MainActivity extends Activity
                         selectedRadioButton = getSelectedRadioButton2;
                         selectedRadioButtonString = getSelectedRadioButtonString2;
                         aspectRatioSelected = data.getExtras().getString("aspectRatioSelected");
-                        int compressedQualityValue = data.getExtras().getInt("qualityCompressValue");
-                        qualityCompressValue = compressedQualityValue;
+                        qualityCompressValue = data.getExtras().getInt("qualityCompressValue");
                         setSelectedRadioButtons();
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
                 case RADIO_BUTTON_3:
@@ -835,11 +831,8 @@ public class MainActivity extends Activity
                         selectedRadioButton = getSelectedRadioButton3;
                         selectedRadioButtonString = getSelectedRadioButtonString3;
                         aspectRatioSelected = data.getExtras().getString("aspectRatioSelected");
-                        int compressedQualityValue = data.getExtras().getInt("qualityCompressValue");
-                        qualityCompressValue = compressedQualityValue;
+                        qualityCompressValue = data.getExtras().getInt("qualityCompressValue");
                         setSelectedRadioButtons();
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
                 case RADIO_BUTTON_4:
@@ -853,11 +846,8 @@ public class MainActivity extends Activity
                         selectedWidth = getSelectedWidth;
                         selectedHeight = getSelectedHeight;
                         aspectRatioSelected = data.getExtras().getString("aspectRatioSelected");
-                        int compressedQualityValue = data.getExtras().getInt("qualityCompressValue");
-                        qualityCompressValue = compressedQualityValue;
+                        qualityCompressValue = data.getExtras().getInt("qualityCompressValue");
                         setSelectedRadioButtonWidthHeight();
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
                 case RQS_LOADMULTIPLEIMAGE:
@@ -867,17 +857,16 @@ public class MainActivity extends Activity
                             for (Parcelable p : list) {
                                 Uri imageUri = (Uri) p;
                                 arrayUri.add(imageUri);
-                                long fileSize = 0;
+                                long fileSize;
                                 String fileSizeString = getImageSize(imageUri);
                                 long fileSizeLong = Long.parseLong(fileSizeString);
-                                int fileSizeInt = Integer.parseInt(fileSizeString);
-                                fileSize = fileSizeInt;
+                                fileSize = Integer.parseInt(fileSizeString);
 
-                                double fileSizeInByte = fileSizeLong;
+                                double fileSizeInByte = Double.parseDouble(fileSizeString);
                                 double fileSizeInKB = fileSizeLong / 1024;
                                 double fileSizeInMB = fileSizeInKB / 1024;
-                                double fileSizeInMBPercision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
-                                fileSizeString = Double.toString(fileSizeInMBPercision);
+                                double fileSizeInMBPrecision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
+                                fileSizeString = Double.toString(fileSizeInMBPrecision);
                                 if (fileSize == 0) {
                                     sizeArrayList.add("N/A");
                                     sizeArrayInByte.add(0.00);
@@ -889,14 +878,12 @@ public class MainActivity extends Activity
                                     sizeArrayInKB.add(fileSizeInKB);
                                     sizeArrayInMB.add(fileSizeInMB);
                                 }
-                                totalSizeInMB += fileSizeInMBPercision;
+                                totalSizeInMB += fileSizeInMBPrecision;
                                 numOfPicsSelected = arrayUri.size();
                                 updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
                             }
                         }
                         break;
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
 
@@ -904,17 +891,16 @@ public class MainActivity extends Activity
                     if (resultCode == RESULT_OK) {
                         Uri imageUri = data.getData();
                         arrayUri.add(imageUri);
-                        long fileSize = 0;
+                        long fileSize;
                         String fileSizeString = getImageSize(imageUri);
                         long fileSizeLong = Long.parseLong(fileSizeString);
-                        int fileSizeInt = Integer.parseInt(fileSizeString);
-                        fileSize = fileSizeInt;
+                        fileSize = Integer.parseInt(fileSizeString);
 
-                        double fileSizeInByte = fileSizeLong;
+                        double fileSizeInByte = Double.parseDouble(fileSizeString);
                         double fileSizeInKB = fileSizeLong / 1024;
                         double fileSizeInMB = fileSizeInKB / 1024;
-                        double fileSizeInMBPercision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
-                        fileSizeString = Double.toString(fileSizeInMBPercision);
+                        double fileSizeInMBPrecision = roundMB(fileSizeInMB, 2, BigDecimal.ROUND_HALF_UP);
+                        fileSizeString = Double.toString(fileSizeInMBPrecision);
                         if (fileSize == 0) {
                             sizeArrayList.add("N/A");
                             sizeArrayInByte.add(0.00);
@@ -926,11 +912,9 @@ public class MainActivity extends Activity
                             sizeArrayInKB.add(fileSizeInKB);
                             sizeArrayInMB.add(fileSizeInMB);
                         }
-                        totalSizeInMB += fileSizeInMBPercision;
+                        totalSizeInMB += fileSizeInMBPrecision;
                         numOfPicsSelected = arrayUri.size();
                         updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
-                    } else if (resultCode == RESULT_CANCELED) {
-
                     }
                     break;
             }
@@ -969,7 +953,6 @@ public class MainActivity extends Activity
 
             sizeOfImg = is.available();
             is.close();
-            resolver = null;
         }
         catch (FileNotFoundException e)
         {
@@ -979,8 +962,8 @@ public class MainActivity extends Activity
         {
             e.printStackTrace();
         }
-        String tempSize = Integer.toString(sizeOfImg);
-        return tempSize;
+
+        return Integer.toString(sizeOfImg);
     }
 
     //Function that is called when settings the text for the selected Radio Button
@@ -1023,7 +1006,7 @@ public class MainActivity extends Activity
     }
 
     //Function that initializes add files
-    public void initializebtnAddFile()
+    public void initializeBtnAddFile()
     {
         btnAddFile = (Button)findViewById(R.id.addphoto);
         btnAddFile.setVisibility(View.INVISIBLE);
@@ -1031,7 +1014,7 @@ public class MainActivity extends Activity
     }
 
     //Function that initializes resize settings
-    public void initializebtnResizeSettings()
+    public void initializeBtnResizeSettings()
     {
         btnResizeSettings = (Button)findViewById(R.id.setResizeSettings);
         btnResizeSettings.setVisibility(View.VISIBLE);
@@ -1040,7 +1023,7 @@ public class MainActivity extends Activity
     }
 
     //Function that initializes resize photos
-    public void initializebtnResizePhotos()
+    public void initializeBtnResizePhotos()
     {
         btnResizePhotos = (Button)findViewById(R.id.resizephotos);
         btnResizePhotos.setVisibility(View.VISIBLE);
@@ -1119,10 +1102,10 @@ public class MainActivity extends Activity
         }
 
         //Method to resize the bitmap
+        //Why is placement not used?
         public Bitmap getBitmapRescaledInTask(Uri imageUri, int sampleSizeInt, int setDesiredWidth, int setDesiredHeight, int indexPlacement)
         {
-            Uri imageURI = imageUri;
-            imageRotation = getOrientationInTask(getApplicationContext(), imageURI);
+            imageRotation = getOrientationInTask(getApplicationContext(), imageUri);
             finalRotation = convertExif2DegressInTask(imageRotation);
 
             Matrix matrix = new Matrix();
@@ -1134,7 +1117,7 @@ public class MainActivity extends Activity
             InputStream inputStream;
             try
             {
-                inputStream = resolver.openInputStream(imageURI);
+                inputStream = resolver.openInputStream(imageUri);
                 bounds = new BitmapFactory.Options();
                 bounds.inJustDecodeBounds = false;
                 bounds.inSampleSize = sampleSizeInt;
@@ -1150,7 +1133,6 @@ public class MainActivity extends Activity
                 fixRotationBitmap = Bitmap.createBitmap(rescaledBitmap, 0, 0, rescaledBitmap.getWidth(), rescaledBitmap.getHeight(), matrix, true);
                 rescaledBitmap.recycle();
                 inputStream.close();
-                resolver = null;
                 return fixRotationBitmap;
             }
             catch (FileNotFoundException e)
@@ -1166,7 +1148,7 @@ public class MainActivity extends Activity
 
         public int getOrientationInTask(Context context, Uri photoUri)
         {
-            int rotateIntValue = 0;
+            int rotateIntValue;
             Cursor cursor = context.getContentResolver().query(photoUri, new String[] {MediaStore.Images.ImageColumns.ORIENTATION}, null, null, null);
             if(cursor.getCount() != 1)
             {
@@ -1183,7 +1165,7 @@ public class MainActivity extends Activity
 
         public int convertExif2DegressInTask(int degreesConvert)
         {
-            int returnValue = 0;
+            int returnValue;
             if(degreesConvert == 90)
             {
                 returnValue = 90;
