@@ -38,44 +38,44 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 public class resizeSettings extends Activity
 {
 	//Global variable for CheckBox
-	CheckBox aspectCheckBox;
+	private CheckBox aspectCheckBox;
 	
 	//Global variable for choice selection
-	String aspectRatioSelected = "CHECKED";
+    private String aspectRatioSelected = "CHECKED";
 	
 	//Global variable for RadioGroup
-	RadioGroup selectedSize;
+    private RadioGroup selectedSize;
 	//Global variable for okay button
-	Button okayClicked;
+    private Button okayClicked;
 		
 	//Global variable for selected width and height ints
-	int selectedWidth = 1;
-	int selectedHeight = 1;
+    private int selectedWidth = 1;
+    private int selectedHeight = 1;
 	//Global variable selectedRadio Button variable
-	int selectedRadioButton = 3;
+    private int selectedRadioButton = 3;
 	//Global variable selectedRadio button String
-	String selectedRadioButtonString = "HD (1920px x 1080px)";
+    private String selectedRadioButtonString = "HD (1920px x 1080px)";
 	
 	//Global variable for Context
-	final Context context = this;
+    private final Context context = this;
 	
 	//Global variable for Alert Dialog Selector for YES_NO
-	int alertDialogSelector = 0;
-	EditText customWidthbtn, customHeightbtn;
-	TextView fitsATextBox, byTextBox, screenTextBox, seekBarValue;
-	boolean customVisibility = false;
+    private int alertDialogSelector = 0;
+    private EditText customWidthbtn, customHeightbtn;
+    private TextView fitsATextBox, byTextBox, screenTextBox, seekBarValue;
+    private boolean customVisibility = false;
 	
 	//Global variable SeekBar
-	SeekBar seekbar;
-	int qualityCompressValue = 100;
-	int value2Show = 0;
-	String seekTypeTextString = "0";
+    private SeekBar seekbar;
+    private int qualityCompressValue = 100;
+    private int value2Show = 0;
+    private String seekTypeTextString = "0";
 
 	//Global variable Intent
-	Intent selectedAcceptedSize;
+    private Intent selectedAcceptedSize;
 	
 	//Global final int
-	final int MAX_Width_HEIGHT = 5001;
+    private final int MAX_WIDTH_HEIGHT = 5001;
 		
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -204,12 +204,12 @@ public class resizeSettings extends Activity
 	
 	public void setCheckBoxChoice(String selectedCheckBox)
 	{
-		if(selectedCheckBox.equals("CHECKED"))
+		if(selectedCheckBox != null && selectedCheckBox.equals("CHECKED"))
 		{
 			aspectCheckBox.setSelected(true);
 			aspectRatioSelected = "CHECKED";
 		}
-		else if(selectedCheckBox.equals("UNCHECKED"))
+		else if(selectedCheckBox != null &&selectedCheckBox.equals("UNCHECKED"))
 		{
 			aspectCheckBox.setSelected(false);
 			aspectRatioSelected = "UNCHECKED";
@@ -266,7 +266,7 @@ public class resizeSettings extends Activity
 			setResult(RESULT_OK, selectedAcceptedSize);
 			finish();
 		}
-		else if(selectedRadioButton == 4 && (selectedWidth > 1 && selectedWidth < MAX_Width_HEIGHT) && (selectedHeight > 1 && selectedHeight < MAX_Width_HEIGHT))
+		else if(selectedRadioButton == 4 && (selectedWidth > 1 && selectedWidth < MAX_WIDTH_HEIGHT) && (selectedHeight > 1 && selectedHeight < MAX_WIDTH_HEIGHT))
 		{
 			selectedAcceptedSize.putExtra("selectedRadioButton", selectedRadioButton);
 			selectedAcceptedSize.putExtra("selectedRadioButtonString",selectedRadioButtonString);
@@ -276,7 +276,7 @@ public class resizeSettings extends Activity
 			setResult(RESULT_OK, selectedAcceptedSize);
 			finish();
 		}
-		else if(selectedRadioButton == 4 && ((selectedWidth > 1 && selectedWidth < MAX_Width_HEIGHT) && selectedHeight == 1))
+		else if(selectedRadioButton == 4 && ((selectedWidth > 1 && selectedWidth < MAX_WIDTH_HEIGHT) && selectedHeight == 1))
 		{
 			// set title
 			alertDialogBuilder.setTitle("Error!"); 
@@ -298,7 +298,7 @@ public class resizeSettings extends Activity
 			// show it
 			alertDialog.show();
 		}
-		else if(selectedRadioButton == 4 && (selectedWidth == 1 && (selectedHeight > 1 && selectedHeight < MAX_Width_HEIGHT)))
+		else if(selectedRadioButton == 4 && (selectedWidth == 1 && (selectedHeight > 1 && selectedHeight < MAX_WIDTH_HEIGHT)))
 		{
 			// set title
 			alertDialogBuilder.setTitle("Error!"); 
@@ -321,13 +321,13 @@ public class resizeSettings extends Activity
 			// show it
 			alertDialog.show();
 		}
-		else if(selectedRadioButton == 4 && selectedWidth >= MAX_Width_HEIGHT && selectedHeight >= MAX_Width_HEIGHT)
+		else if(selectedRadioButton == 4 && selectedWidth >= MAX_WIDTH_HEIGHT && selectedHeight >= MAX_WIDTH_HEIGHT)
 		{
 			//set title
 			alertDialogBuilder.setTitle("Error!");
 			//set dialog message
 			alertDialogBuilder
-			.setMessage("Range for width and height must be in between 0 and " + MAX_Width_HEIGHT)
+			.setMessage("Range for width and height must be in between 0 and " + MAX_WIDTH_HEIGHT)
 			.setCancelable(false)
 			.setPositiveButton("OK", new DialogInterface.OnClickListener()
 			{
@@ -347,10 +347,10 @@ public class resizeSettings extends Activity
 		}
 	}
 				
-	public void setEditTextFunction(int _width, int _height)
+	public void setEditTextFunction(int _width, int _HEIGHT)
 	{
 		customWidthbtn.setText(Integer.toString(_width));
-		customHeightbtn.setText(Integer.toString(_height));
+		customHeightbtn.setText(Integer.toString(_HEIGHT));
 	}
 	
 	public void setRadioButtonSelection(int setRadio2this, String setRadioString2this)
@@ -519,7 +519,7 @@ public class resizeSettings extends Activity
 					setResult(RESULT_OK, selectedAcceptedSize);
 					finish();
 				}
-				else if(selectedRadioButton == 4 && (selectedWidth > 1 && selectedWidth < MAX_Width_HEIGHT) && (selectedHeight > 1 && selectedHeight < MAX_Width_HEIGHT))
+				else if(selectedRadioButton == 4 && (selectedWidth > 1 && selectedWidth < MAX_WIDTH_HEIGHT) && (selectedHeight > 1 && selectedHeight < MAX_WIDTH_HEIGHT))
 				{
 					selectedAcceptedSize.putExtra("selectedRadioButton", selectedRadioButton);
 					selectedAcceptedSize.putExtra("selectedRadioButtonString",selectedRadioButtonString);
@@ -531,7 +531,7 @@ public class resizeSettings extends Activity
 					setResult(RESULT_OK, selectedAcceptedSize);
 					finish();
 				}
-				else if(selectedRadioButton == 4 && ((selectedWidth > 1 && selectedWidth < MAX_Width_HEIGHT) && selectedHeight == 1))
+				else if(selectedRadioButton == 4 && ((selectedWidth > 1 && selectedWidth < MAX_WIDTH_HEIGHT) && selectedHeight == 1))
 				{
 					// set title
 					alertDialogBuilder.setTitle("Error!"); 
@@ -554,7 +554,7 @@ public class resizeSettings extends Activity
 					// show it
 					alertDialog.show();
 				}
-				else if(selectedRadioButton == 4 && (selectedWidth == 1 && (selectedHeight > 1 && selectedHeight < MAX_Width_HEIGHT)))
+				else if(selectedRadioButton == 4 && (selectedWidth == 1 && (selectedHeight > 1 && selectedHeight < MAX_WIDTH_HEIGHT)))
 				{
 					// set title
 					alertDialogBuilder.setTitle("Error!"); 
@@ -577,13 +577,13 @@ public class resizeSettings extends Activity
 					// show it
 					alertDialog.show();
 				}
-				else if(selectedRadioButton == 4 && selectedWidth >= MAX_Width_HEIGHT && selectedHeight >= MAX_Width_HEIGHT)
+				else if(selectedRadioButton == 4 && selectedWidth >= MAX_WIDTH_HEIGHT && selectedHeight >= MAX_WIDTH_HEIGHT)
 				{
 					//set title
 					alertDialogBuilder.setTitle("Error!");
 					//set dialog message
 					alertDialogBuilder
-						.setMessage("Range for width and height must be in between 0 and " + MAX_Width_HEIGHT)
+						.setMessage("Range for width and height must be in between 0 and " + MAX_WIDTH_HEIGHT)
 						.setCancelable(false)
 						.setPositiveButton("OK", new DialogInterface.OnClickListener()
 						{
