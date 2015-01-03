@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
     
     <RadioGroup
         android:id="@+id/SizeGroupButtons"
@@ -16,29 +15,25 @@
             android:id="@+id/mobileDeviceSizeRadio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mobile Device (320 by 480px)"
-            android:textColor="#353839" />
+            android:text="Mobile Device (320 by 480px)" />
         
         <RadioButton
             android:id="@+id/tabletSizeRadio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tablet (1024 by 768px)"
-            android:textColor="#353839" />
+            android:text="Tablet (1024 by 768px)" />
         
         <RadioButton
             android:id="@+id/largeSizeRadio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="HD (1920 by 1080px)"
-            android:textColor="#353839" />
+            android:text="HD (1920 by 1080px)" />
         
         <RadioButton
             android:id="@+id/customSizeRadio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Custom"
-            android:textColor="#353839" />
+            android:text="Custom" />
     </RadioGroup>
     
     <RelativeLayout

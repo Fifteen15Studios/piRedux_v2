@@ -48,6 +48,10 @@ import android.util.Log;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 //Import Android View Features
 import android.view.Menu;
@@ -55,8 +59,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 //Import Android Widget Features
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
     //-----constants-----
@@ -64,6 +73,7 @@ public class MainActivity extends Activity {
     protected static final String SETTING_HEIGHT = "imageHeight";
     protected static final String SETTING_QUALITY = "imageQuality";
     protected static final String SETTING_ASPECT_RATIO = "retainAspectRatio";
+    protected static final String SETTING_NUMBER_OF_IMAGES = "numberOfImages";
 
     //Default Values
     protected static final int DEFAULT_QUALITY = 50;
@@ -103,6 +113,8 @@ public class MainActivity extends Activity {
     private TextView numPhotoTextView;
     private TextView totalSizeTextView;
 
+    private ListView photoView;
+
     private Boolean loopFinished = true;
 
     //ArrayList URI
@@ -118,10 +130,7 @@ public class MainActivity extends Activity {
     private int numOfPicsSelected = 0;
 
     private int identification_counter = 0, identification_ender = 0;
-    //private int setFinalWidth = 0, setFinalHeight = 0;
     private int setSampleScale = 0;
-    //private int setDesiredWidth = 0;
-    //private int setDesiredHeight = 0;
     private int imageRotation = 0, finalRotation = 0;
 
     //Global variable for Context
@@ -184,6 +193,7 @@ public class MainActivity extends Activity {
         displayTextView = (TextView) findViewById(R.id.displayView);
         numPhotoTextView = (TextView) findViewById(R.id.numPhotosView);
         totalSizeTextView = (TextView) findViewById(R.id.totalSizeView);
+        photoView = (ListView)findViewById(R.id.photoList);
 
         btnResizeSettings.setOnClickListener(new OnClickListener() {
             @Override
@@ -274,9 +284,9 @@ public class MainActivity extends Activity {
                 try {
                     // Get resource path from intent called
                     Uri imageUri = (Uri) extras.getParcelable(Intent.EXTRA_STREAM);
-                    arrayUri.add(imageUri);
                     getFileSize(imageUri);
-                    /*long fileSize = 0;
+                    /*arrayUri.add(imageUri);
+                    long fileSize = 0;
                     String fileSizeString = getImageSize(imageUri);
                     long fileSizeLong = Long.parseLong(fileSizeString);
                     fileSize = Integer.parseInt(fileSizeString);
@@ -312,6 +322,12 @@ public class MainActivity extends Activity {
     }
 
     public void updateNumPhotoTotalSizeViews(int _numberOfPhotos, double _totalPhotoSizes) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+
+        editor.putInt(SETTING_NUMBER_OF_IMAGES, _numberOfPhotos);
+        editor.apply();
+
         numPhotoTextView.setText(Integer.toString(_numberOfPhotos) + " photo(s)");
         //totalSizeTextView.setText((new DecimalFormat("##.##").format(_totalPhotoSizes)) + " MB");
         totalSizeTextView.setText(String.format("%.2f MB", _totalPhotoSizes));
@@ -688,7 +704,8 @@ public class MainActivity extends Activity {
                                 ArrayList<Parcelable> list = data.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                                 for (Parcelable p : list) {
                                     Uri imageUri = (Uri) p;
-                                    arrayUri.add(imageUri);
+                                    getFileSize(imageUri);
+                                    /*arrayUri.add(imageUri);
                                     long fileSize;
                                     String fileSizeString = getImageSize(imageUri);
                                     long fileSizeLong = Long.parseLong(fileSizeString);
@@ -712,7 +729,7 @@ public class MainActivity extends Activity {
                                     }
                                     totalSizeInMB += fileSizeInMBPrecision;
                                     numOfPicsSelected = arrayUri.size();
-                                    updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
+                                    updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);*/
                                 }
                             }
                             break;
@@ -722,8 +739,9 @@ public class MainActivity extends Activity {
                     case RQS_LOADIMAGE:
                         if (resultCode == RESULT_OK) {
                             Uri imageUri = data.getData();
-                            arrayUri.add(imageUri);
-                            long fileSize;
+                            //arrayUri.add(imageUri);
+                            getFileSize(imageUri);
+                            /*long fileSize;
                             String fileSizeString = getImageSize(imageUri);
                             long fileSizeLong = Long.parseLong(fileSizeString);
                             fileSize = Integer.parseInt(fileSizeString);
@@ -746,7 +764,7 @@ public class MainActivity extends Activity {
                             }
                             totalSizeInMB += fileSizeInMBPrecision;
                             numOfPicsSelected = arrayUri.size();
-                            updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
+                            updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);*/
                         }
                         break;
                 }
@@ -962,12 +980,13 @@ public class MainActivity extends Activity {
     }
 
     //Function that is called when creating the menu/features
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
+    }*/
 
     private void getFileSize(Uri uri)
     {
@@ -1000,6 +1019,62 @@ public class MainActivity extends Activity {
         numOfPicsSelected = arrayUri.size();
         updateNumPhotoTotalSizeViews(numOfPicsSelected, totalSizeInMB);
 
-        //return (totalSizeInMB += fileSizeInMBPrecision);
+        setList();
     }
-}
+
+    //set ListView with selected images
+    private void setList()
+    {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        ArrayList<HashMap<String, ?>> data = new ArrayList<HashMap<String, ?>>();
+        HashMap<String, Object> row = new HashMap<String, Object>();
+
+        int numberOfImages = settings.getInt(SETTING_NUMBER_OF_IMAGES, 0);
+        Bitmap image;
+        ListView listView = (ListView)findViewById(R.id.photoList);
+
+        for(int i=1; i<=numberOfImages; i++)
+        {
+            try {
+                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), arrayUri.get(i-1));
+
+                if(i%2==1)
+                    row.put("image1", image);
+                else
+                    row.put("image2", image);
+
+                if(i==numberOfImages || i%2==1)
+                    data.add(row);
+            }
+            catch(Exception e)
+            {
+                Toast.makeText(this, "Image Not Found", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        SimpleAdapter adapter = new SimpleAdapter(this,
+                data,
+                R.layout.photo_list_row,
+                new String[] {"image1","image2"},
+                new int[] {R.id.photo1, R.id.photo2});
+
+
+
+        listView.setAdapter(adapter);
+        /*PhotoAdapter photoAdapter = new PhotoAdapter(this,
+                data,
+                R.layout.photo_list_row,
+                new String[] {"image1", "image2"},
+                new int[] { R.id.photo1, R.id.photo2,},
+                listView);
+
+        for(int i=-0; i < photoAdapter.getCount(); i++) {
+            ImageView photo1 = (ImageView) photoAdapter.getView(i, null, null).findViewById(R.id.photo1);
+            ImageView photo2 = (ImageView) photoAdapter.getView(i, null, null).findViewById(R.id.photo2);
+
+            photo1.setImageBitmap();*/
+        }
+
+        //listView.setAdapter(photoAdapter);
+    }
