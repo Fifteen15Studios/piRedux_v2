@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
     private Boolean loopFinished = true;
 
     //ArrayList URI
-    private ArrayList<Uri> arrayUri = new ArrayList<Uri>();
+    private static ArrayList<Uri> arrayUri = new ArrayList<Uri>();
     private ArrayList<String> sizeArrayList = new ArrayList<String>();
     private ArrayList<Double> sizeArrayInByte = new ArrayList<Double>();
     private ArrayList<Double> sizeArrayInKB = new ArrayList<Double>();
@@ -194,6 +194,11 @@ public class MainActivity extends Activity {
         numPhotoTextView = (TextView) findViewById(R.id.numPhotosView);
         totalSizeTextView = (TextView) findViewById(R.id.totalSizeView);
         photoView = (ListView)findViewById(R.id.photoList);
+
+        editor.putInt(SETTING_NUMBER_OF_IMAGES, arrayUri.size());
+        editor.apply();
+        setList();
+        assignIDTasks();
 
         btnResizeSettings.setOnClickListener(new OnClickListener() {
             @Override
@@ -1031,20 +1036,28 @@ public class MainActivity extends Activity {
         HashMap<String, Object> row = new HashMap<String, Object>();
 
         int numberOfImages = settings.getInt(SETTING_NUMBER_OF_IMAGES, 0);
-        Bitmap image;
+        //Bitmap image;
         ListView listView = (ListView)findViewById(R.id.photoList);
 
         for(int i=1; i<=numberOfImages; i++)
         {
+            if(i%2==1)
+                row = new HashMap<String, Object>();
+
             try {
-                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), arrayUri.get(i-1));
 
-                if(i%2==1)
-                    row.put("image1", image);
+                if(i%2==1) {
+                    row.put("image1", arrayUri.get(i - 1));
+                    row.put("image2", null);
+                }
                 else
-                    row.put("image2", image);
+                {
+                    row.put("image1", arrayUri.get(i - 2));
+                    row.put("image2", arrayUri.get(i - 1));
+                }
 
-                if(i==numberOfImages || i%2==1)
+
+                if(i == numberOfImages || (i % 2 == 1))
                     data.add(row);
             }
             catch(Exception e)
@@ -1053,28 +1066,60 @@ public class MainActivity extends Activity {
             }
         }
 
-        SimpleAdapter adapter = new SimpleAdapter(this,
+        /*SimpleAdapter adapter = new SimpleAdapter(this,
                 data,
                 R.layout.photo_list_row,
                 new String[] {"image1","image2"},
                 new int[] {R.id.photo1, R.id.photo2});
 
-
-
-        listView.setAdapter(adapter);
-        /*PhotoAdapter photoAdapter = new PhotoAdapter(this,
+        listView.setAdapter(adapter);*/
+        PhotoAdapter photoAdapter = new PhotoAdapter(this,
                 data,
                 R.layout.photo_list_row,
                 new String[] {"image1", "image2"},
                 new int[] { R.id.photo1, R.id.photo2,},
                 listView);
 
-        for(int i=-0; i < photoAdapter.getCount(); i++) {
+        listView.setAdapter(photoAdapter);
+
+        /*for(int i=-0; i < photoAdapter.getCount(); i++) {
             ImageView photo1 = (ImageView) photoAdapter.getView(i, null, null).findViewById(R.id.photo1);
             ImageView photo2 = (ImageView) photoAdapter.getView(i, null, null).findViewById(R.id.photo2);
 
             photo1.setImageBitmap();*/
-        }
-
-        //listView.setAdapter(photoAdapter);
     }
+
+    protected static ArrayList<Uri> getUris()
+    {
+        return arrayUri;
+    }
+
+    protected static Uri getUris(int index)
+    {
+        return arrayUri.get(index);
+    }
+
+    protected static Bitmap getImage(Context context, int index)
+    {
+        try {
+            return (MediaStore.Images.Media.getBitmap(context.getContentResolver(), arrayUri.get(index)));
+        }
+        catch(Exception e)
+        {
+            Toast.makeText(context, "Image Not Found", Toast.LENGTH_SHORT);
+            return null;
+        }
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+
+        editor.remove(SETTING_NUMBER_OF_IMAGES);
+        editor.apply();
+
+        super.onDestroy();
+    }
+}

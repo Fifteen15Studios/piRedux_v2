@@ -13,6 +13,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,41 +33,33 @@ public class PhotoAdapter extends SimpleAdapter {
 
         this.context = context;
 
-        for(int i = 0; i < data.size(); i++) {
+        /*for(int i = 0; i < data.size(); i++) {
             Bitmap image = (Bitmap) data.get(i).get(from);
             ImageView view = (ImageView) listView.findViewById(resource);
-        }
+        }*/
         //this.listView = listView;
     }
 
+    //TODO crop images and manage memory
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent)
+    public View getView(int position, View convertView, ViewGroup parent)
     {
-        convertView = new RelativeLayout(context);
-        String inflater = Context.LAYOUT_INFLATER_SERVICE;
-        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        convertView = layoutInflater.inflate(R.layout.photo_list_row, parent, false);
+        //LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        //convertView = layoutInflater.inflate(R.layout.photo_list_row, parent, false);
 
         //MediaStore.Images.Media.getBitmap(context.getContentResolver(), arrayUri.get(i-1));
 
-        final View parentView = super.getView(position, convertView, parent);
-        final ImageView photo1 = (ImageView) parentView.findViewById(R.id.photo1);
-        final ImageView photo2 = (ImageView) parentView.findViewById(R.id.photo2);
+        View parentView = super.getView(position, convertView, parent);
+        ImageView photo1 = (ImageView) parentView.findViewById(R.id.photo1);
+        ImageView photo2 = (ImageView) parentView.findViewById(R.id.photo2);
+
+        Bitmap bitmap1 = MainActivity.getImage(parent.getContext(), (position * 2));
+        Bitmap bitmap2 = MainActivity.getImage(parent.getContext(), (position*2)+1);
+
+        photo1.setImageBitmap(bitmap1);
+        //if(MainActivity.getImage(parent.getContext(), (position*2 + 1)) != null)
+        photo2.setImageBitmap(bitmap2);
 
         return parentView;
-    }
-
-    protected void setImages(int position, Bitmap image1, Bitmap image2)
-    {
-
-        ArrayList<HashMap<String, ?>> item = new ArrayList<HashMap<String, ?>>();
-
-
-
-        //ImageView view1 = (ImageView) listView.findViewById(R.id.photo1);
-        //ImageView view2 = (ImageView) listView.findViewById(R.id.photo2);
-
-        //view1.setImageBitmap(image1);
-        //view2.setImageBitmap(image2);
     }
 }
